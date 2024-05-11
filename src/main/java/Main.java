@@ -1,5 +1,7 @@
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,20 +16,22 @@ public class Main {
     //
     ServerSocket serverSocket = null;
     Socket clientSocket = null;
-    String _200OKresponseString = "HTTP/1.1 200 OK\r\n\r\n";
-    String _404NOTFOUNDresponseString = "HTTP/1.1 404 Not Found\r\n\r\n";
+    String _200OKresponseString = "HTTP/1.1 200 OK\r\n\r\n\r\n";
+    String _404NOTFOUNDresponseString = "HTTP/1.1 404 Not Found\r\n\r\n\r\n";
 
     try {
       serverSocket = new ServerSocket(4221);
       serverSocket.setReuseAddress(true);
       clientSocket = serverSocket.accept(); // Wait for connection from client.
       System.out.println("accepted new connection");
+
       OutputStream clientOutputStream = clientSocket.getOutputStream();
       InputStream clientInputStream = clientSocket.getInputStream();
 
-      String clientRequestString = new String(clientInputStream.readAllBytes());
-      System.out.println(clientRequestString);
-      String requestPath = clientRequestString.split("\r\n\r\n")[0].split(" ")[1];
+      BufferedReader reader = new BufferedReader(new InputStreamReader(clientInputStream));
+
+      String clientRequestString = reader.readLine();
+      String requestPath = clientRequestString.split(" ")[1];
 
       System.out.println(requestPath);
 
@@ -38,6 +42,7 @@ public class Main {
         System.out.println("Responded 404 NOT FOUND");
         clientOutputStream.write(_404NOTFOUNDresponseString.getBytes());
       }
+      clientOutputStream.flush();
       serverSocket.close();
       clientSocket.close();
     } catch (IOException e) {
