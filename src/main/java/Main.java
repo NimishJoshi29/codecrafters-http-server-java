@@ -12,14 +12,19 @@ public class Main {
     //
     ServerSocket serverSocket = null;
     Socket clientSocket = null;
+    String responseString = "HTTP/1.1 200 OK\r\n\r\n";
 
     try {
       serverSocket = new ServerSocket(4221);
       serverSocket.setReuseAddress(true);
       clientSocket = serverSocket.accept(); // Wait for connection from client.
       System.out.println("accepted new connection");
+      clientSocket.getOutputStream().write(responseString.getBytes());
+      serverSocket.close();
     } catch (IOException e) {
       System.out.println("IOException: " + e.getMessage());
+      return;
     }
+
   }
 }
