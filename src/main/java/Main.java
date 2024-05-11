@@ -15,7 +15,7 @@ public class Main {
     ServerSocket serverSocket = null;
     Socket clientSocket = null;
     String _200OKresponseString = "HTTP/1.1 200 OK\r\n\r\n";
-    String _404NOTFOUNDresponseString = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
+    String _404NOTFOUNDresponseString = "HTTP/1.1 404 Not Found\r\n\r\n";
 
     try {
       serverSocket = new ServerSocket(4221);
