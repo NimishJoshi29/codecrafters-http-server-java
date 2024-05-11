@@ -16,8 +16,8 @@ public class Main {
     //
     ServerSocket serverSocket = null;
     Socket clientSocket = null;
-    String _200OKresponseString = "HTTP/1.1 200 OK\r\n\r\n\r\n";
-    String _404NOTFOUNDresponseString = "HTTP/1.1 404 Not Found\r\n\r\n\r\n";
+    String _200OKresponseString = "HTTP/1.1 200 OK\r\n\r\n";
+    String _404NOTFOUNDresponseString = "HTTP/1.1 404 Not Found\r\n\r\n";
 
     try {
       serverSocket = new ServerSocket(4221);
@@ -35,12 +35,22 @@ public class Main {
 
       System.out.println(requestPath);
 
-      if (requestPath.equals("/")) {
+      if (requestPath.length() == 1 && requestPath.equals("/")) {
         System.out.println("Responded 200 OK");
         clientOutputStream.write(_200OKresponseString.getBytes());
-      } else {
-        System.out.println("Responded 404 NOT FOUND");
-        clientOutputStream.write(_404NOTFOUNDresponseString.getBytes());
+      } else if (requestPath.length() > 1) {
+        String[] requestTokens = requestPath.split("/");
+
+        if (requestTokens[1].equals("echo")) {
+          String echoResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n" + //
+              "Content-Length: " + requestTokens[2].length() + "\r\n" + //
+              "\r\n" + //
+              requestTokens[2];
+          clientOutputStream.write(echoResponse.getBytes());
+        } else {
+          System.out.println("Responded 404 NOT FOUND");
+          clientOutputStream.write(_404NOTFOUNDresponseString.getBytes());
+        }
       }
       clientOutputStream.flush();
       serverSocket.close();
