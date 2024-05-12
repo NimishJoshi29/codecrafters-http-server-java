@@ -7,36 +7,47 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.IntFunction;
 
 public class Main {
   public static void main(String[] args) {
-    // You can use print statements as follows for debugging, they'll be visible
-    // when running tests.
+
     System.out.println("Logs from your program will appear here!");
 
-    // Uncomment this block to pass the first stage
-    //
     ServerSocket serverSocket = null;
     Socket clientSocket = null;
 
     try {
       serverSocket = new ServerSocket(4221);
       serverSocket.setReuseAddress(true);
-      clientSocket = serverSocket.accept(); // Wait for connection from client.
-      System.out.println("accepted new connection");
+      // clientSocket = serverSocket.accept(); // Wait for connection from client.
+      // System.out.println("accepted new connection");
 
-      OutputStream clientOutputStream = clientSocket.getOutputStream();
-      InputStream clientInputStream = clientSocket.getInputStream();
+      // OutputStream clientOutputStream = clientSocket.getOutputStream();
+      // InputStream clientInputStream = clientSocket.getInputStream();
 
-      respond(clientOutputStream, clientInputStream);
+      // respond(clientOutputStream, clientInputStream);
 
     } catch (IOException e) {
       e.printStackTrace();
     }
+
+    Thread[] threadPool = new Thread[10];
+    for (int i = 0; i < threadPool.length; i++) {
+      threadPool[i] = new Thread(new Server(serverSocket));
+      threadPool[i].start();
+    }
+
+    while (true) {
+      for (int i = 0; i < threadPool.length; i++) {
+        if (!threadPool[i].isAlive()) {
+          threadPool[i] = new Thread(new Server(serverSocket));
+          threadPool[i].start();
+        }
+      }
+    }
   }
 
-  private static void respond(OutputStream clientOutputStream, InputStream clientInputStream) throws IOException {
+  public static void respond(OutputStream clientOutputStream, InputStream clientInputStream) throws IOException {
     String _200OKresponseString = "HTTP/1.1 200 OK\r\n\r\n";
     String _404NOTFOUNDresponseString = "HTTP/1.1 404 Not Found\r\n\r\n";
 
@@ -87,5 +98,29 @@ public class Main {
       }
     }
     clientOutputStream.flush();
+  }
+}
+
+class Server implements Runnable {
+
+  private ServerSocket serverSocket;
+
+  Server(ServerSocket socket) {
+    serverSocket = socket;
+  }
+
+  @Override
+  public void run() {
+    try {
+      Socket clientSocket = serverSocket.accept();
+      System.out.println("accepted new connection");
+
+      OutputStream clientOutputStream = clientSocket.getOutputStream();
+      InputStream clientInputStream = clientSocket.getInputStream();
+
+      Main.respond(clientOutputStream, clientInputStream);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }
