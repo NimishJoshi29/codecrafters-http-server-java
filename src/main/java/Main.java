@@ -149,6 +149,7 @@ public class Main {
           System.out.println(currentLine);
           if (currentLine.toLowerCase().startsWith("content-length")) {
             fileSize = Integer.parseInt(currentLine.split(":")[1].stripLeading());
+            break;
           }
           currentLine = reader.readLine();
         }
