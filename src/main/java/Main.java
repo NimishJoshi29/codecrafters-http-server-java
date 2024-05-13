@@ -179,7 +179,7 @@ public class Main {
         fileWriter.write(fileContentsBuffer.toString());
         fileWriter.close();
 
-        String postFileResponseString = "HTTP/1.1 201\r\n\r\n";
+        String postFileResponseString = "HTTP/1.1 201 \r\n\r\n";
 
         clientOutputStream.write(postFileResponseString.getBytes());
 
