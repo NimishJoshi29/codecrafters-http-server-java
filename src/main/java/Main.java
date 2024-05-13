@@ -145,6 +145,8 @@ public class Main {
         String currentLine = reader.readLine();
         int fileSize = 0;
 
+        System.out.println(currentLine);
+
         while (!currentLine.toLowerCase().startsWith("content-type")) {
           if (currentLine.toLowerCase().startsWith("content-length")) {
             fileSize = Integer.parseInt(currentLine.split(":")[1].stripLeading());
