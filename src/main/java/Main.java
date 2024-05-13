@@ -145,9 +145,8 @@ public class Main {
         String currentLine = reader.readLine();
         int fileSize = 0;
 
-        System.out.println(currentLine);
-
         while (!currentLine.toLowerCase().startsWith("content-type")) {
+          System.out.println(currentLine);
           if (currentLine.toLowerCase().startsWith("content-length")) {
             fileSize = Integer.parseInt(currentLine.split(":")[1].stripLeading());
           }
@@ -156,10 +155,18 @@ public class Main {
         reader.skip(2);
 
         StringBuffer fileContentsBuffer = new StringBuffer();
-        while (fileSize > 0) {
-          fileContentsBuffer.append((char) reader.read());
-          fileSize--;
+        for (int i = 0; i < fileSize; i++) {
+          char readChar = (char) reader.read();
+          if (readChar == '\r') {
+            readChar = (char) reader.read();
+            if (readChar == '\n') {
+              i = 0;
+              continue;
+            }
+          }
+          fileContentsBuffer.append(readChar);
         }
+
         if (directoryPath.isBlank())
           directoryPath = System.getProperty("user.dir");
 
