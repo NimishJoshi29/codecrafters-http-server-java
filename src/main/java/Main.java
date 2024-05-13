@@ -1,4 +1,6 @@
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -19,13 +21,6 @@ public class Main {
     try {
       serverSocket = new ServerSocket(4221);
       serverSocket.setReuseAddress(true);
-      // clientSocket = serverSocket.accept(); // Wait for connection from client.
-      // System.out.println("accepted new connection");
-
-      // OutputStream clientOutputStream = clientSocket.getOutputStream();
-      // InputStream clientInputStream = clientSocket.getInputStream();
-
-      // respond(clientOutputStream, clientInputStream);
 
     } catch (IOException e) {
       e.printStackTrace();
@@ -70,6 +65,7 @@ public class Main {
             "\r\n" + //
             requestTokens[2];
         clientOutputStream.write(echoResponse.getBytes());
+
       } else if (requestTokens[1].equals("user-agent")) {
 
         List<Byte> inputBytesList = new ArrayList<Byte>();
@@ -92,6 +88,34 @@ public class Main {
         clientOutputStream.write(userAgentEchoResponseString.getBytes());
 
         System.out.println("Responded 200 OK with user-agent info");
+
+      } else if (requestTokens[1].equals("files")) {
+        String fileName = requestTokens[2];
+
+        String requestedFilePath = System.getProperty("user.dir") + "/" + fileName;
+
+        File requestedFile = new File(requestedFilePath);
+
+        if (requestedFile.exists()) {
+          System.out.println("File found.");
+          FileInputStream fileInputStream = new FileInputStream(requestedFile);
+
+          int fileSize = (int) requestedFile.length();
+
+          byte[] fileContents = new byte[fileSize];
+
+          fileInputStream.read(fileContents);
+          String fileResponseString = "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: "
+              + fileSize + "\r\n\r\n";
+
+          clientOutputStream.write(fileResponseString.getBytes());
+          clientOutputStream.write(fileContents);
+        } else {
+          System.out.println("File not found.");
+          clientOutputStream.write(_404NOTFOUNDresponseString.getBytes());
+        }
+
+        System.out.println(requestedFilePath);
       } else {
         System.out.println("Responded 404 NOT FOUND");
         clientOutputStream.write(_404NOTFOUNDresponseString.getBytes());
