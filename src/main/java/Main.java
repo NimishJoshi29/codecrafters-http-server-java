@@ -28,21 +28,22 @@ public class Main {
 
     Thread[] threadPool = new Thread[10];
     for (int i = 0; i < threadPool.length; i++) {
-      threadPool[i] = new Thread(new Server(serverSocket));
+      threadPool[i] = new Thread(new Server(serverSocket, args));
       threadPool[i].start();
     }
 
     while (true) {
       for (int i = 0; i < threadPool.length; i++) {
         if (!threadPool[i].isAlive()) {
-          threadPool[i] = new Thread(new Server(serverSocket));
+          threadPool[i] = new Thread(new Server(serverSocket, args));
           threadPool[i].start();
         }
       }
     }
   }
 
-  public static void respond(OutputStream clientOutputStream, InputStream clientInputStream) throws IOException {
+  public static void respond(OutputStream clientOutputStream, InputStream clientInputStream, String[] args)
+      throws IOException {
     String _200OKresponseString = "HTTP/1.1 200 OK\r\n\r\n";
     String _404NOTFOUNDresponseString = "HTTP/1.1 404 Not Found\r\n\r\n";
 
@@ -92,7 +93,11 @@ public class Main {
       } else if (requestTokens[1].equals("files")) {
         String fileName = requestTokens[2];
 
-        String requestedFilePath = System.getProperty("user.dir") + "/" + fileName;
+        String directoryPath = "";
+        if (args.length > 1 && args[0].equals("--directory") && args[1] != null)
+          directoryPath = args[1].endsWith("/") ? args[1] : args[1] + "/";
+
+        String requestedFilePath = directoryPath + fileName;
 
         File requestedFile = new File(requestedFilePath);
 
@@ -110,6 +115,7 @@ public class Main {
 
           clientOutputStream.write(fileResponseString.getBytes());
           clientOutputStream.write(fileContents);
+          fileInputStream.close();
         } else {
           System.out.println("File not found.");
           clientOutputStream.write(_404NOTFOUNDresponseString.getBytes());
@@ -128,9 +134,11 @@ public class Main {
 class Server implements Runnable {
 
   private ServerSocket serverSocket;
+  String[] args;
 
-  Server(ServerSocket socket) {
+  Server(ServerSocket socket, String[] args) {
     serverSocket = socket;
+    this.args = args;
   }
 
   @Override
@@ -142,7 +150,7 @@ class Server implements Runnable {
       OutputStream clientOutputStream = clientSocket.getOutputStream();
       InputStream clientInputStream = clientSocket.getInputStream();
 
-      Main.respond(clientOutputStream, clientInputStream);
+      Main.respond(clientOutputStream, clientInputStream, args);
     } catch (IOException e) {
       e.printStackTrace();
     }
