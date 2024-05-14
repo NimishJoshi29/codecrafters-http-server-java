@@ -1,9 +1,9 @@
-import java.io.BufferedOutputStream;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,9 +12,9 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
-
-import javax.swing.text.html.HTMLDocument.Iterator;
+import java.util.zip.GZIPOutputStream;
 
 public class Main {
   public static void main(String[] args) {
@@ -22,7 +22,6 @@ public class Main {
     System.out.println("Logs from your program will appear here!");
 
     ServerSocket serverSocket = null;
-    Socket clientSocket = null;
 
     try {
       serverSocket = new ServerSocket(4221);
@@ -84,17 +83,19 @@ public class Main {
               String[] encodingSchemes = encodingScheme.split(",");
               for (String s : encodingSchemes) {
                 if (s.strip().equals("gzip")) {
-                  String response = "HTTP/1.1 200 OK\r\nContent-Encoding: " + s.strip()
-                      + "\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nTest";
-                  clientOutputStream.write(response.getBytes());
+                  // String response = "HTTP/1.1 200 OK\r\nContent-Encoding: " + s.strip()
+                  // + "\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nTest";
+                  // clientOutputStream.write(response.getBytes());
+                  respondWithCompression(clientOutputStream, requestTokens[2]);
                 }
               }
             }
             if (encodingScheme.equals("gzip")) {
-              String response = "HTTP/1.1 200 OK\r\nContent-Encoding: " + encodingScheme
-                  + "\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nTest";
+              // String response = "HTTP/1.1 200 OK\r\nContent-Encoding: " + encodingScheme
+              // + "\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nTest";
 
-              clientOutputStream.write(response.getBytes());
+              // clientOutputStream.write(response.getBytes());
+              respondWithCompression(clientOutputStream, requestTokens[2]);
             }
           }
           String echoResponse = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n" + //
@@ -207,6 +208,27 @@ public class Main {
 
         clientOutputStream.write(postFileResponseString.getBytes());
       }
+    }
+  }
+
+  private static void respondWithCompression(OutputStream clientOutputStream, String body) {
+    System.out.println(body);
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    GZIPOutputStream gzipOutputStream;
+    try {
+      gzipOutputStream = new GZIPOutputStream(bos);
+      gzipOutputStream.write(body.getBytes());
+      gzipOutputStream.flush();
+      body = Base64.getEncoder().encodeToString(bos.toByteArray());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    String response = "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: "
+        + body.length() + "\r\n\r\n" + body;
+    try {
+      clientOutputStream.write(response.getBytes());
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 }
