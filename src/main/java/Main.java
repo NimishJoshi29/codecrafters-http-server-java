@@ -83,8 +83,8 @@ public class Main {
             if (encodingScheme.contains(",")) {
               String[] encodingSchemes = encodingScheme.split(",");
               for (String s : encodingSchemes) {
-                if (s.equals("gzip")) {
-                  String response = "HTTP/1.1 200 OK\r\nContent-Encoding: " + s
+                if (s.strip().equals("gzip")) {
+                  String response = "HTTP/1.1 200 OK\r\nContent-Encoding: " + s.strip()
                       + "\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nTest";
                   clientOutputStream.write(response.getBytes());
                 }
