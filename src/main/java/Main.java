@@ -80,6 +80,16 @@ public class Main {
 
           if (nextLine.toLowerCase().startsWith("accept-encoding")) {
             String encodingScheme = nextLine.split(":")[1].stripLeading();
+            if (encodingScheme.contains(",")) {
+              String[] encodingSchemes = encodingScheme.split(",");
+              for (String s : encodingSchemes) {
+                if (s.equals("gzip")) {
+                  String response = "HTTP/1.1 200 OK\r\nContent-Encoding: " + s
+                      + "\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nTest";
+                  clientOutputStream.write(response.getBytes());
+                }
+              }
+            }
             if (encodingScheme.equals("gzip")) {
               String response = "HTTP/1.1 200 OK\r\nContent-Encoding: " + encodingScheme
                   + "\r\nContent-Type: text/plain\r\nContent-Length: 4\r\n\r\nTest";
